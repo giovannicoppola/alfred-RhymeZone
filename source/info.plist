@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>giovanni.rhyme</string>
+	<key>connections</key>
+	<dict>
+		<key>5077D4A1-4906-4200-8EC5-402ECF43F9FE</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>E2B49861-1962-4E39-AFB8-498995F74BA2</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>giovanni</string>
+	<key>description</key>
+	<string></string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>RhymeZone</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>0</integer>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>keyword</key>
+				<string>rhy</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string></string>
+				<key>script</key>
+				<string>#!/bin/bash
+
+# Function to fetch rhymes using Datamuse API and format as JSON
+get_rhymes() {
+    local word="$1"
+    local url="https://api.datamuse.com/words?rel_rhy=${word}"
+
+    # Fetch data using curl and parse JSON output using jq
+    response=$(curl -s "$url")
+
+    # Check if response is empty or contains no rhymes
+    if [[ -z "$response" || "$response" == "[]" ]]; then
+        echo '{"items": []}'
+        exit 1
+    fi
+
+    # Start JSON output
+    echo '{"items": ['
+
+    # Use jq to process each item in the response
+    first=true
+    # Loop over the JSON array using jq
+    echo "$response" | jq -c '.[]' | while read -r row; do
+        title=$(echo "$row" | jq -r '.word')
+        score=$(echo "$row" | jq -r '.score')
+        syllables=$(echo "$row" | jq -r '.numSyllables')
+
+        # Add a comma for all but the first item
+        if [ "$first" = true ]; then
+            first=false
+        else
+            echo ","
+        fi
+
+        # Print the individual JSON item with syllables in subtitle
+        echo -n "  {"
+        echo -n "\"title\": \"$title\","
+        echo -n "\"subtitle\": \"syllables: $syllables, score: $score\","
+        echo -n "\"valid\": true,"
+
+        echo -n "\"arg\": \"$title\""
+        echo "}"
+    done
+
+    # End JSON output
+    echo ']}'
+}
+
+# Check if a word is provided
+if [[ -z "$1" ]]; then
+    echo "Usage: $0 &lt;word&gt;"
+    exit 1
+fi
+
+get_rhymes "$1"
+</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string></string>
+				<key>title</key>
+				<string>Query the RhymeZone database</string>
+				<key>type</key>
+				<integer>11</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>5077D4A1-4906-4200-8EC5-402ECF43F9FE</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>autopaste</key>
+				<false/>
+				<key>clipboardtext</key>
+				<string>{query}</string>
+				<key>ignoredynamicplaceholders</key>
+				<false/>
+				<key>transient</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.clipboard</string>
+			<key>uid</key>
+			<string>E2B49861-1962-4E39-AFB8-498995F74BA2</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>in response to https://www.alfredforum.com/topic/22849-workflow-for-rhymes</string>
+	<key>uidata</key>
+	<dict>
+		<key>5077D4A1-4906-4200-8EC5-402ECF43F9FE</key>
+		<dict>
+			<key>xpos</key>
+			<real>540</real>
+			<key>ypos</key>
+			<real>395</real>
+		</dict>
+		<key>E2B49861-1962-4E39-AFB8-498995F74BA2</key>
+		<dict>
+			<key>xpos</key>
+			<real>840</real>
+			<key>ypos</key>
+			<real>395</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array/>
+	<key>variablesdontexport</key>
+	<array/>
+	<key>version</key>
+	<string>0.0.1</string>
+	<key>webaddress</key>
+	<string></string>
+</dict>
+</plist>
