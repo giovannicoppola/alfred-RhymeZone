@@ -60,59 +60,29 @@
 				<key>script</key>
 				<string>#!/bin/bash
 
-# Function to fetch rhymes using Datamuse API and format as JSON
-get_rhymes() {
-    local word="$1"
-    local url="https://api.datamuse.com/words?rel_rhy=${word}"
+# RhymeZone — fetch rhymes from the Datamuse API and emit Alfred JSON.
+# jq builds the JSON so returned words are always correctly escaped.
 
-    # Fetch data using curl and parse JSON output using jq
-    response=$(curl -s "$url")
+word="$1"
 
-    # Check if response is empty or contains no rhymes
-    if [[ -z "$response" || "$response" == "[]" ]]; then
-        echo '{"items": []}'
-        exit 1
-    fi
-
-    # Start JSON output
-    echo '{"items": ['
-
-    # Use jq to process each item in the response
-    first=true
-    # Loop over the JSON array using jq
-    echo "$response" | jq -c '.[]' | while read -r row; do
-        title=$(echo "$row" | jq -r '.word')
-        score=$(echo "$row" | jq -r '.score')
-        syllables=$(echo "$row" | jq -r '.numSyllables')
-
-        # Add a comma for all but the first item
-        if [ "$first" = true ]; then
-            first=false
-        else
-            echo ","
-        fi
-
-        # Print the individual JSON item with syllables in subtitle
-        echo -n "  {"
-        echo -n "\"title\": \"$title\","
-        echo -n "\"subtitle\": \"syllables: $syllables, score: $score\","
-        echo -n "\"valid\": true,"
-
-        echo -n "\"arg\": \"$title\""
-        echo "}"
-    done
-
-    # End JSON output
-    echo ']}'
-}
-
-# Check if a word is provided
-if [[ -z "$1" ]]; then
-    echo "Usage: $0 &lt;word&gt;"
-    exit 1
+if [[ -z "$word" ]]; then
+    jq -n '{items: [{title: "Type a word to find rhymes", valid: false}]}'
+    exit 0
 fi
 
-get_rhymes "$1"
+response=$(curl -s -G "https://api.datamuse.com/words" --data-urlencode "rel_rhy=$word")
+
+if [[ -z "$response" || "$response" == "[]" ]]; then
+    jq -n --arg w "$word" '{items: [{title: "No rhymes found", subtitle: $w, valid: false}]}'
+    exit 0
+fi
+
+echo "$response" | jq '{items: [ .[] | {
+    title: .word,
+    subtitle: ("syllables: \(.numSyllables // "?"), score: \(.score // "?")"),
+    valid: true,
+    arg: .word
+} ]}'
 </string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
@@ -161,16 +131,16 @@ get_rhymes "$1"
 		<key>5077D4A1-4906-4200-8EC5-402ECF43F9FE</key>
 		<dict>
 			<key>xpos</key>
-			<real>540</real>
+			<real>540.0</real>
 			<key>ypos</key>
-			<real>395</real>
+			<real>395.0</real>
 		</dict>
 		<key>E2B49861-1962-4E39-AFB8-498995F74BA2</key>
 		<dict>
 			<key>xpos</key>
-			<real>840</real>
+			<real>840.0</real>
 			<key>ypos</key>
-			<real>395</real>
+			<real>395.0</real>
 		</dict>
 	</dict>
 	<key>userconfigurationconfig</key>
@@ -178,7 +148,7 @@ get_rhymes "$1"
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.0.1</string>
+	<string>0.0.2</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>

@@ -11,3 +11,6 @@ Trigger the keyword with a word to search RhymeZone. A configuration-only workfl
 ## Notes
 
 Personal workflow. Not published to the Alfred gallery.
+
+# Changelog
+- 2026-07-21: version 0.0.2, URL-encode the query, build the JSON with jq (escape-safe), fewer processes, prompt-on-empty and friendly no-results
