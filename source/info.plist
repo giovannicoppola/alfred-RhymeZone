@@ -151,7 +151,9 @@ Type `rhy` followed by a word. Results come from the [Datamuse API](https://www.
 - &lt;kbd&gt;⌘&lt;/kbd&gt;&lt;kbd&gt;L&lt;/kbd&gt; show it in Large Type
 - &lt;kbd&gt;⇧&lt;/kbd&gt; or &lt;kbd&gt;⌘&lt;/kbd&gt;&lt;kbd&gt;Y&lt;/kbd&gt; preview the word on RhymeZone
 
-Needs an internet connection; nothing to install.</string>
+Needs an internet connection; nothing to install.
+
+Written in response to a request on the Alfred Forum: [Workflow for rhymes](https://www.alfredforum.com/topic/22849-workflow-for-rhymes).</string>
 	<key>uidata</key>
 	<dict>
 		<key>5077D4A1-4906-4200-8EC5-402ECF43F9FE</key>

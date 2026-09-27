@@ -26,6 +26,10 @@ with its syllable count and Datamuse score.
 
 The search waits until you stop typing, so Datamuse isn't queried on every keystroke.
 
+## Background
+
+Written in response to a request on the Alfred Forum: [Workflow for rhymes](https://www.alfredforum.com/topic/22849-workflow-for-rhymes).
+
 # Changelog
 - 2026-09-27: version 0.1.0, no dependencies: rewritten in JavaScript for Automation (no more
   `jq`, which older macOS versions lack), 5-second network timeout and a clear message when
