@@ -4,6 +4,8 @@
 <dict>
 	<key>bundleid</key>
 	<string>giovanni.rhyme</string>
+	<key>category</key>
+	<string>Productivity</string>
 	<key>connections</key>
 	<dict>
 		<key>5077D4A1-4906-4200-8EC5-402ECF43F9FE</key>
@@ -23,7 +25,7 @@
 	<key>createdby</key>
 	<string>giovanni</string>
 	<key>description</key>
-	<string></string>
+	<string>Find rhymes for a word, with syllable counts</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
@@ -52,48 +54,62 @@
 				<key>queuedelayimmediatelyinitially</key>
 				<true/>
 				<key>queuedelaymode</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>queuemode</key>
 				<integer>1</integer>
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>#!/bin/bash
+				<string>// RhymeZone — rhymes from the Datamuse API (the engine behind RhymeZone).
+// JavaScript for Automation ships with macOS, so there is nothing to install.
 
-# RhymeZone — fetch rhymes from the Datamuse API and emit Alfred JSON.
-# jq builds the JSON so returned words are always correctly escaped.
+function run(argv) {
+    const word = (argv[0] || '').trim()
+    const items = []
+    const say = (title, subtitle) =&gt; JSON.stringify({ items: [{ title, subtitle, valid: false }] })
 
-word="$1"
+    if (!word) return say('Type a word to find rhymes', 'Rhymes from Datamuse, the engine behind RhymeZone')
 
-if [[ -z "$word" ]]; then
-    jq -n '{items: [{title: "Type a word to find rhymes", valid: false}]}'
-    exit 0
-fi
+    const app = Application.currentApplication()
+    app.includeStandardAdditions = true
+    const quoted = "'" + word.replace(/'/g, "'\\''") + "'"
 
-response=$(curl -s -G "https://api.datamuse.com/words" --data-urlencode "rel_rhy=$word")
+    let words
+    try {
+        // -f: HTTP errors fail instead of returning an error page; --max-time: never hang Alfred
+        const raw = app.doShellScript('curl -s -f -G --max-time 5 https://api.datamuse.com/words' +
+                                      ' --data-urlencode rel_rhy=' + quoted + ' --data max=100')
+        words = JSON.parse(raw)
+    } catch (e) {
+        return say('Could not reach Datamuse', 'Check your connection and try again')
+    }
 
-if [[ -z "$response" || "$response" == "[]" ]]; then
-    jq -n --arg w "$word" '{items: [{title: "No rhymes found", subtitle: $w, valid: false}]}'
-    exit 0
-fi
+    if (!words.length) return say('No rhymes found', `Nothing rhymes with “${word}”`)
 
-echo "$response" | jq '{items: [ .[] | {
-    title: .word,
-    subtitle: ("syllables: \(.numSyllables // "?"), score: \(.score // "?")"),
-    valid: true,
-    arg: .word
-} ]}'
+    for (const w of words) {
+        const syllables = w.numSyllables ? `${w.numSyllables} syllable${w.numSyllables === 1 ? '' : 's'}` : ''
+        items.push({
+            title: w.word,
+            subtitle: [syllables, w.score ? `score ${w.score}` : '', '↩ copy'].filter(Boolean).join(' · '),
+            arg: w.word,
+            valid: true,
+            text: { copy: w.word, largetype: w.word },
+            quicklookurl: 'https://www.rhymezone.com/r/rhyme.cgi?typeofrhyme=perfect&amp;Word=' + encodeURIComponent(w.word)
+        })
+    }
+    return JSON.stringify({ items })
+}
 </string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
-				<string></string>
+				<string>Rhymes from Datamuse, the engine behind RhymeZone</string>
 				<key>title</key>
-				<string>Query the RhymeZone database</string>
+				<string>Find rhymes</string>
 				<key>type</key>
-				<integer>11</integer>
+				<integer>7</integer>
 				<key>withspace</key>
 				<true/>
 			</dict>
@@ -125,7 +141,17 @@ echo "$response" | jq '{items: [ .[] | {
 		</dict>
 	</array>
 	<key>readme</key>
-	<string>in response to https://www.alfredforum.com/topic/22849-workflow-for-rhymes</string>
+	<string># RhymeZone 🎵
+
+Find rhymes for a word from Alfred.
+
+Type `rhy` followed by a word. Results come from the [Datamuse API](https://www.datamuse.com/api/), the engine behind [RhymeZone](https://www.rhymezone.com), best matches first, with syllable counts.
+
+- &lt;kbd&gt;↩&lt;/kbd&gt; copy the word
+- &lt;kbd&gt;⌘&lt;/kbd&gt;&lt;kbd&gt;L&lt;/kbd&gt; show it in Large Type
+- &lt;kbd&gt;⇧&lt;/kbd&gt; or &lt;kbd&gt;⌘&lt;/kbd&gt;&lt;kbd&gt;Y&lt;/kbd&gt; preview the word on RhymeZone
+
+Needs an internet connection; nothing to install.</string>
 	<key>uidata</key>
 	<dict>
 		<key>5077D4A1-4906-4200-8EC5-402ECF43F9FE</key>
@@ -148,7 +174,7 @@ echo "$response" | jq '{items: [ .[] | {
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.0.2</string>
+	<string>0.1.0</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>
